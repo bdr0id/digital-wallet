@@ -1,0 +1,17 @@
+app:
+  server:
+    name: AWS
+    detail: This is AWS for production environment
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://prod-db-url:3306/wallet-prod
+    username: prod_user
+    password: prod_password
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
