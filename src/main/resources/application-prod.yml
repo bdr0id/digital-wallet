@@ -7,11 +7,125 @@ spring:
   config:
     activate:
       on-profile: prod
+  
+  # Production database configuration with optimized connection pooling
   datasource:
-    url: jdbc:mysql://prod-db-url:3306/wallet-prod
-    username: prod_user
-    password: prod_password
+    url: jdbc:mysql://localhost:3306/wallet_prod?useSSL=true&requireSSL=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8
+    username: ${DB_USERNAME:prod_user}
+    password: ${DB_PASSWORD:prod_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    # Production HikariCP connection pool settings
+    hikari:
+      pool-name: WalletProdPool
+      maximum-pool-size: 50
+      minimum-idle: 10
+      idle-timeout: 600000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+      connection-test-query: SELECT 1
+      auto-commit: false
+  
+  # Production JPA and Hibernate configuration
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 50
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+    open-in-view: false
+
+# Production logging - minimal but comprehensive for audit
+logging:
+  level:
+    com.boit_droid.wallet: INFO
+    com.boit_droid.wallet.service: INFO
+    com.boit_droid.wallet.controller: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.springframework.security: WARN
+    org.springframework.transaction: INFO
+  file:
+    name: logs/wallet-prod.log
+    max-size: 50MB
+    max-history: 90
+
+# Production security and monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+
+# Production SpringDoc OpenAPI configuration - Security focused, documentation disabled
+springdoc:
+  api-docs:
+    enabled: false  # Disable API docs in production for security
+    path: /v3/api-docs
+    groups:
+      enabled: false
+  swagger-ui:
+    enabled: false  # Disable Swagger UI in production for security
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    displayRequestDuration: false
+    showExtensions: false
+    showCommonExtensions: false
+    tryItOutEnabled: false
+    filter: false
+    displayOperationId: false
+    deepLinking: false
+    defaultModelsExpandDepth: 0
+    defaultModelExpandDepth: 0
+    defaultModelRendering: model
+    docExpansion: none
+    maxDisplayedTags: 0
+    showActuatorEndpoints: false
+    configUrl: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    disable-swagger-default-url: true
+    use-root-path: false
+  show-actuator: false
+  writer-with-default-pretty-printer: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  cache:
+    disabled: false  # Enable caching in production for performance
+  packages-to-scan: com.boit_droid.wallet.controller
+
+# Production wallet configuration overrides
+wallet:
+  security:
+    max-login-attempts: 3  # Strict security for production
+    lockout-duration-seconds: 1800  # 30 minutes
+  transaction:
+    max-transfer-amount: 1000000.0  # Full limits for production
+    max-top-up-amount: 500000.0
+  notification:
+    enable-email-notifications: true
+    enable-sms-notifications: true  # Enable SMS in production
+  audit:
+    enable-detailed-logging: true
+    enable-transaction-logging: true
+    enable-security-logging: true
+    audit-retention-days: 2555  # 7 years for compliance
+    log-rotation-days: 30

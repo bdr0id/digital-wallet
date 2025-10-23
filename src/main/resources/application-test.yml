@@ -1,0 +1,132 @@
+app:
+  server:
+    name: test-server
+    detail: This is test environment for automated testing
+
+spring:
+  config:
+    activate:
+      on-profile: test
+  
+  # Test database configuration with H2 in-memory database
+  datasource:
+    url: jdbc:h2:mem:wallet_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    
+    # Test HikariCP connection pool settings
+    hikari:
+      pool-name: WalletTestPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 10000
+      max-lifetime: 600000
+      connection-test-query: SELECT 1
+  
+  # Test JPA and Hibernate configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        use_sql_comments: false
+        jdbc:
+          batch_size: 10
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+    open-in-view: false
+  
+  # H2 Console for test debugging (disabled in production)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Test-specific logging - detailed for debugging test failures
+logging:
+  level:
+    com.boit_droid.wallet: DEBUG
+    org.springframework.test: DEBUG
+    org.springframework.transaction: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web: DEBUG
+  file:
+    name: logs/wallet-test.log
+    max-size: 10MB
+    max-history: 5
+
+# Test management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,beans,env
+  endpoint:
+    health:
+      show-details: always
+
+# Test SpringDoc OpenAPI configuration - Optimized for automated testing
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+    groups:
+      enabled: false  # Disable groups for simpler testing
+  swagger-ui:
+    enabled: true  # Enable for integration tests that verify UI
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    displayRequestDuration: false
+    showExtensions: false
+    showCommonExtensions: false
+    tryItOutEnabled: false  # Disable interactive features in tests
+    filter: false
+    displayOperationId: false
+    deepLinking: false
+    defaultModelsExpandDepth: 0
+    defaultModelExpandDepth: 0
+    defaultModelRendering: model
+    docExpansion: none
+    maxDisplayedTags: 20
+    showActuatorEndpoints: false
+    configUrl: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    disable-swagger-default-url: true
+    use-root-path: false
+  show-actuator: false
+  writer-with-default-pretty-printer: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  cache:
+    disabled: true  # Disable caching for consistent test results
+  packages-to-scan: com.boit_droid.wallet.controller  # Limit scanning for faster test startup
+
+# Test wallet configuration overrides
+wallet:
+  security:
+    max-login-attempts: 10  # More lenient for testing
+    lockout-duration-seconds: 60  # 1 minute for faster testing
+  transaction:
+    min-transfer-amount: 0.01  # Allow micro transactions for testing
+    max-transfer-amount: 10000.0  # Lower limits for test safety
+    min-top-up-amount: 1.0
+    max-top-up-amount: 5000.0
+  notification:
+    max-retry-attempts: 1  # Faster failure for tests
+    retry-delay-ms: 100
+    batch-size: 10
+    enable-email-notifications: false  # Disable external services in tests
+    enable-sms-notifications: false
+  audit:
+    enable-detailed-logging: true
+    log-rotation-days: 1  # Minimal retention for tests

@@ -7,14 +7,118 @@ spring:
   config:
     activate:
       on-profile: dev
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: gamerceorg@gmail.com
+    password: tqsexkknkivmsiuc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+    default-encoding: UTF-8
+
+# Gmail SMTP Configuration
+#    username: ${GMAIL_USERNAME:your-email@gmail.com}
+#    password: ${GMAIL_APP_PASSWORD:your-app-password}
+  
+  # Database configuration with connection pooling
   datasource:
-    url: jdbc:mysql://localhost:3306/wallet-dev
+    url: jdbc:mysql://localhost:3306/wallet_dev?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password:
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    # HikariCP connection pool settings
+    hikari:
+      pool-name: WalletDevPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      leak-detection-threshold: 60000
+      connection-test-query: SELECT 1
+  
+  # JPA and Hibernate configuration
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        generate_statistics: false
+    open-in-view: false
+
+# Development-specific logging
+logging:
+  level:
+    com.boit_droid.wallet: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.transaction: DEBUG
+  file:
+    name: logs/wallet-dev.log
+
+# Development SpringDoc OpenAPI configuration - Full featured for development
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+    groups:
+      enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    displayRequestDuration: true
+    showExtensions: true
+    showCommonExtensions: true
+    tryItOutEnabled: true
+    filter: true
+    displayOperationId: true
+    deepLinking: true
+    defaultModelsExpandDepth: 2
+    defaultModelExpandDepth: 2
+    defaultModelRendering: example
+    docExpansion: list
+    maxDisplayedTags: 100
+    showActuatorEndpoints: true
+    configUrl: /v3/api-docs/swagger-config
+    url: /v3/api-docs
+    disable-swagger-default-url: false
+    use-root-path: false
+  show-actuator: true
+  writer-with-default-pretty-printer: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  cache:
+    disabled: true  # Disable caching in development for real-time updates
+
+# Development wallet configuration overrides
+wallet:
+  security:
+    max-login-attempts: 5  # More lenient for development
+    lockout-duration-seconds: 300  # 5 minutes
+  transaction:
+    max-transfer-amount: 100000.0  # Lower limits for dev testing
+    max-top-up-amount: 50000.0
+  audit:
+    enable-detailed-logging: true
+    log-rotation-days: 7  # Shorter retention for dev

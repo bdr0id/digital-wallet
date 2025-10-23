@@ -4,3 +4,98 @@ server:
 spring:
   profiles:
     active: dev
+  application:
+    name: digital-wallet-api.
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: youremal@email.com
+    password: youremailpassword
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+    default-encoding: UTF-8
+
+# Gmail SMTP Configuration
+#    username: ${GMAIL_USERNAME:your-email@gmail.com}
+#    password: ${GMAIL_APP_PASSWORD:your-app-password}
+  
+# Common logging configuration
+logging:
+  level:
+    com.boit_droid.wallet: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{requestId}] %logger{36} - %msg%n"
+  file:
+    name: logs/wallet-application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+
+# Management endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# SpringDoc OpenAPI configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operationsSorter: method
+    tagsSorter: alpha
+    displayRequestDuration: true
+    showExtensions: true
+    showCommonExtensions: true
+  show-actuator: false
+
+# Wallet application configuration
+wallet:
+  security:
+    pin-min-length: 4
+    pin-max-length: 6
+    max-login-attempts: 3
+    lockout-duration-seconds: 900
+    salt-algorithm: SHA256
+  transaction:
+    min-transfer-amount: 1.0
+    max-transfer-amount: 1000000.0
+    min-top-up-amount: 10.0
+    max-top-up-amount: 500000.0
+    default-currency: KES
+    statement-max-days: 365
+  notification:
+    max-retry-attempts: 3
+    retry-delay-ms: 5000
+    batch-size: 100
+    enable-email-notifications: true
+    enable-sms-notifications: false
+  audit:
+    enable-detailed-logging: true
+    enable-transaction-logging: true
+    enable-security-logging: true
+    audit-retention-days: 2555
+    log-rotation-days: 30
+
