@@ -1,12 +1,12 @@
 package com.boit_droid.wallet.dto.response;
 
+import com.boit_droid.wallet.util.SignatureUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(
-    name = "ApiResponse",
+    name = "CustomApiResponse",
     description = "Standard API response wrapper for all endpoints",
     example = """
         {
@@ -30,101 +30,118 @@ import java.util.UUID;
         }
         """
 )
-public class ApiResponse<T> {
+public class CustomApiResponse<T> {
+
 
     @Schema(
         description = "Indicates whether the operation was successful",
-        example = "true",
-        required = true
+        example = "true"
     )
     private Boolean success;
 
     @Schema(
         description = "Human-readable message describing the operation result",
-        example = "User registered successfully",
-        required = true
+        example = "User registered successfully"
     )
     private String message;
 
     @Schema(
         description = "Unique identifier for tracking this request across systems",
-        example = "550e8400-e29b-41d4-a716-446655440000",
-        required = true
+        example = "550e8400-e29b-41d4-a716-446655440000"
     )
     private String requestId;
 
     @Schema(
         description = "Locale information for internationalization support",
-        example = "en-US",
-        required = false
+        example = "en-US"
     )
     private String locale;
 
     @Schema(
         description = "Salt value used for cryptographic operations and request signing",
-        example = "abc123def456",
-        required = false
+        example = "abc123def456"
     )
     private String salt;
 
     @Schema(
         description = "Digital signature for request/response integrity verification",
-        example = "sha256_signature_hash",
-        required = false
+        example = "sha256_signature_hash"
     )
     private String signature;
 
     @Schema(
-        description = "Response payload containing the actual data (varies by endpoint)",
-        required = false
+        description = "Response payload containing the actual data (varies by endpoint)"
     )
     private T data;
 
     @Schema(
         description = "List of error messages when operation fails (null for successful operations)",
-        example = "[\"Invalid email format\", \"Password too short\"]",
-        required = false
+        example = "[\"Invalid email format\", \"Password too short\"]"
     )
     private List<String> errors;
 
     @Schema(
         description = "Timestamp when the response was generated",
         example = "2024-01-15T10:30:00Z",
-        required = true,
         type = "string",
         format = "date-time"
     )
     private Instant timestamp;
     
+    private void ensureSecurityFields() {
+
+        if (this.salt == null || this.salt.isBlank()) {
+            this.salt = UUID.randomUUID().toString();
+        }
+        if (this.signature == null || this.signature.isBlank()) {
+            this.signature = UUID.randomUUID().toString();
+        }
+    }
+
     // Constructor for success responses with data
-    public ApiResponse(Boolean success, String message, String requestId, T data) {
+    public CustomApiResponse(Boolean success, String message, String requestId, T data) {
         this.success = success;
         this.message = message;
         this.requestId = requestId;
         this.data = data;
         this.timestamp = Instant.now();
+        ensureSecurityFields();
     }
     
     // Constructor for error responses
-    public ApiResponse(Boolean success, String message, String requestId, List<String> errors) {
+    public CustomApiResponse(Boolean success, String message, String requestId, List<String> errors) {
         this.success = success;
         this.message = message;
         this.requestId = requestId;
         this.errors = errors;
         this.timestamp = Instant.now();
+        ensureSecurityFields();
     }
     
     // Static factory methods for common responses
-    public static <T> ApiResponse<T> success(String message, String requestId, T data) {
-        return new ApiResponse<>(true, message, requestId, data);
+    public static <T> CustomApiResponse<T> success(String message, String requestId, T data) {
+        return new CustomApiResponse<>(true, message, requestId, data);
     }
 
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(true, message, UUID.randomUUID().toString(), data);
+    public static <T> CustomApiResponse<T> success(String message, T data) {
+        return new CustomApiResponse<>(true, message, UUID.randomUUID().toString(), data);
     }
 
-    public static <T> ApiResponse<T> error(String message, String requestId, List<String> errors) {
-        return new ApiResponse<>(false, message, requestId, errors);
+    public static <T> CustomApiResponse<T> error(String message, String requestId, List<String> errors) {
+        return new CustomApiResponse<>(false, message, requestId, errors);
+    }
+
+    /**
+     * Factory method for creating OTP-required responses with 202 Accepted status
+     * @param message The message to display to the user
+     * @param requestId The request ID for tracking
+     * @param otpRequiredData The OTP-required response data
+     * @return CustomApiResponse with OtpRequiredResponse data
+     */
+    public static CustomApiResponse<OtpRequiredResponse> otpRequired(String message, String requestId, OtpRequiredResponse otpRequiredData) {
+        CustomApiResponse<OtpRequiredResponse> response = new CustomApiResponse<>(false, message, requestId, otpRequiredData);
+        response.setErrors(List.of("Provide the 6-digit OTP to complete the operation"));
+        return response;
     }
 
     public boolean isSuccess() {
