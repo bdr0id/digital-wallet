@@ -27,14 +27,14 @@ import java.util.Map;
 @Configuration
 @OpenAPIDefinition(
     info = @Info(
-        title = "Wallet Application API",
+        title = "Digital Wallet",
         version = "1.0.0",
         description = "Comprehensive digital wallet management system providing user registration, " +
                      "wallet operations, transaction processing, and notification services.",
         contact = @Contact(
-            name = "Wallet Development Team",
-            email = "dev@wallet-app.com",
-            url = "https://wallet-app.com"
+            name = "Digital Wallet Development Team",
+            email = "collinskboit@gmail.com",
+            url = "https://boit-droid.vercel.app/"
         ),
         license = @License(
             name = "MIT License",
